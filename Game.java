@@ -19,7 +19,7 @@ public class Game
 {
     private Parser parser;
     private Room currentRoom;
-        
+
     /**
      * Create the game and initialise its internal map.
      */
@@ -34,22 +34,85 @@ public class Game
      */
     private void createRooms()
     {
-        Room outside, theater, pub, lab, office;
+        Room outside, lobby, lockers, theatre, office, stairs, hallway, upstairs, basement, downstairs, purgatory;
       
         // create the rooms
-        outside = new Room("outside the main entrance of the university");
-        theater = new Room("in a lecture theater");
-        pub = new Room("in the campus pub");
-        lab = new Room("in a computing lab");
-        office = new Room("in the computing admin office");
-        
+        outside = new Room("""
+                at the school in your Mom's car. It is saturday and you're here for theatre practice.
+                Normally you walk but you were running late and it is raining heavily.
+                You look over and your Mom smiles and tells you to have fun. You quickly thank her and get out of the car.
+                As you step out the door there is a large puddle, your shoes are soaked!.
+                Good thing you have your costume shoes.""");
+        lobby = new Room("""
+                in the lobby, still soaked from rain. You need to change and get to practice fast. 
+                There is an office to your east, a stairway is to your north, and a hallway to your west.""");
+        stairs = new Room("in the stairwell");
+        lockers = new Room("""
+                in the locker room. You still feel foggy, why are you here again?
+                You sit and think, trying to remember...
+                Right! You need to change into your costume. You run to your locker and open it.
+                Inside you see a pile of wet clothes, a little shocked you look down.
+                You're wearing your outfit! Today really just isn't your day.
+                Get to the theatre!""");
+        office = new Room("""
+                in the office lobby. No one is here, but there is a layout of the school. 
+                There is a locker room on the lower floor, the theatre class room is upstairs, 
+                and the actual theatre is at the end of the hallway on the bottom floor.""");
+        hallway = new Room("""
+                in the main floor hallway. There is just a hall of classrooms.
+                I'm not sure this is where I'm supposed to be, maybe I took a wrong turn in the rush.""");
+        upstairs = new Room("""
+                in the upstairs hallway.
+                Your friend was supposed to be in the theatre classroom waiting on you,
+                but you can see it is empty.
+                They must be downstairs with the class already. I should go.""");
+        downstairs = new Room("""
+                rushing down the stairs. You can't believe you're late again!
+                Your wet shoes slip and you fall backwards. You feel yourself land hard.
+                You're dazed but you don't hurt, so you hop up and continue running to the basement.""");
+        basement = new Room("""
+                in the basement.
+                The locker room is directly to your east and the theatre stage entrance
+                is at the end of the west hallway.""");
+        theatre = new Room("""
+                finally in the theatre, your favorite place to be.
+                You breathe a sigh of relief.
+                You always enjoy being on stage with your friends,
+                there is no doubt you would do this everyday for the rest of eternity.
+                You wonder however, where is everyone? your friends aren't around.
+                Was there practice today? Was I that late?
+                The more you think about it the less you remember.
+                The stage lights go dim. Why is it so hard to think?
+                You try and recall the first thing that comes to mind from today..
+                Your Mom! Maybe she is still outside? I could call her or go back outside.""");
+        purgatory = new Room ("""
+                in a dark hallway. Who are you? Why do you feel so cold? Alone?
+                You just hear a faint sobbing, it chills you to your core. 
+                It sounds so familiar to you. Mom! Moooom! Anyone?!
+                You call out, the hallway echoes your voice back. 
+                Something doesn't feel right, your world feels like its shrinking.
+                You should move.""");
         // initialise room exits
-        outside.setExits(null, theater, lab, pub);
-        theater.setExits(null, null, null, outside);
-        pub.setExits(null, outside, null, null);
-        lab.setExits(outside, office, null, null);
-        office.setExits(null, null, null, lab);
-
+        outside.setExit("north", lobby);
+        lobby.setExit("north", stairs);
+        lobby.setExit("east", office);
+        lobby.setExit("west", hallway);
+        stairs.setExit("up", upstairs);
+        stairs.setExit("down", downstairs);
+        hallway.setExit("east",lobby);
+        downstairs.setExit("down", basement);
+        basement.setExit("east", lockers);
+        basement.setExit("west", theatre);
+        upstairs.setExit("down", stairs);
+        office.setExit("west", lobby);
+        theatre.setExit("east", purgatory);
+        purgatory.setExit("north", outside);
+        purgatory.setExit("east", outside);
+        purgatory.setExit("south", outside);
+        purgatory.setExit("west", outside);
+        purgatory.setExit("up", outside);
+        purgatory.setExit("down", outside);
+        lockers.setExit("west", basement);
         currentRoom = outside;  // start game outside
     }
 
@@ -77,25 +140,11 @@ public class Game
     private void printWelcome()
     {
         System.out.println();
-        System.out.println("Welcome to the World of Zuul!");
-        System.out.println("World of Zuul is a new, incredibly boring adventure game.");
+        System.out.println("Welcome to theatre practice!");
+        System.out.println("Theatre practice is a story game about one theatre student's day.");
         System.out.println("Type 'help' if you need help.");
         System.out.println();
-        System.out.println("You are " + currentRoom.getDescription());
-        System.out.print("Exits: ");
-        if(currentRoom.northExit != null) {
-            System.out.print("north ");
-        }
-        if(currentRoom.eastExit != null) {
-            System.out.print("east ");
-        }
-        if(currentRoom.southExit != null) {
-            System.out.print("south ");
-        }
-        if(currentRoom.westExit != null) {
-            System.out.print("west ");
-        }
-        System.out.println();
+        printLocationInfo();
     }
 
     /**
@@ -119,6 +168,12 @@ public class Game
         else if (commandWord.equals("go")) {
             goRoom(command);
         }
+        else if(commandWord.equals("look")) {
+            look();
+        }
+        else if(commandWord.equals("callmom")) {
+            callMom();
+        }
         else if (commandWord.equals("quit")) {
             wantToQuit = quit(command);
         }
@@ -135,11 +190,11 @@ public class Game
      */
     private void printHelp() 
     {
-        System.out.println("You are lost. You are alone. You wander");
-        System.out.println("around at the university.");
+        System.out.println("Your goal is to make it through the day.");
+        System.out.println("You're running late so you should be quick, the other students are likely waiting on you.");
         System.out.println();
         System.out.println("Your command words are:");
-        System.out.println("   go quit help");
+        parser.showCommands();
     }
 
     /** 
@@ -157,40 +212,14 @@ public class Game
         String direction = command.getSecondWord();
 
         // Try to leave current room.
-        Room nextRoom = null;
-        if(direction.equals("north")) {
-            nextRoom = currentRoom.northExit;
-        }
-        if(direction.equals("east")) {
-            nextRoom = currentRoom.eastExit;
-        }
-        if(direction.equals("south")) {
-            nextRoom = currentRoom.southExit;
-        }
-        if(direction.equals("west")) {
-            nextRoom = currentRoom.westExit;
-        }
+        Room nextRoom = currentRoom.getExit(direction);
 
         if (nextRoom == null) {
             System.out.println("There is no door!");
         }
         else {
             currentRoom = nextRoom;
-            System.out.println("You are " + currentRoom.getDescription());
-            System.out.print("Exits: ");
-            if(currentRoom.northExit != null) {
-                System.out.print("north ");
-            }
-            if(currentRoom.eastExit != null) {
-                System.out.print("east ");
-            }
-            if(currentRoom.southExit != null) {
-                System.out.print("south ");
-            }
-            if(currentRoom.westExit != null) {
-                System.out.print("west ");
-            }
-            System.out.println();
+            printLocationInfo();
         }
     }
 
@@ -208,5 +237,29 @@ public class Game
         else {
             return true;  // signal that we want to quit
         }
+    }
+
+    /**
+     * Allows the player to remind themselves of their surroundings.
+     */
+    private void look()
+    {
+        System.out.println(currentRoom.getLongDescription());
+    }
+
+    private void callMom()
+    {
+        System.out.println("""
+                You take out your phone and call your mom.
+                Odd, there is no ring tone. All you hear is... sobbing?
+                Mom doesn't answer. She is probably driving anyway and you
+                wouldn't want to risk an accident.
+                You hang up and put your phone away.""");
+    }
+
+    private void printLocationInfo()
+    {
+        System.out.println(currentRoom.getLongDescription());
+        System.out.println();
     }
 }
